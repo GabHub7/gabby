@@ -14,7 +14,7 @@ class HttpReq(val method: String, val path: String, val query: Map<String, Strin
 class HttpResp(val status: Int, val headers: Map<String, String>, val body: ByteArray)
 
 /**
- * Panel pengaturan web lokal. Hanya 127.0.0.1, dilindungi token acak (cookie HttpOnly SameSite=Strict),
+ * Panel pengaturan web lokal. Hanya 127.0.0.1, dilindungi token acak (cookie HttpOnly SameSite=Lax),
  * pemeriksaan Host (anti DNS rebinding) dan Origin (anti CSRF).
  */
 class LocalServer(
@@ -35,9 +35,15 @@ class LocalServer(
         if (host != "127.0.0.1:$port" && host != "localhost:$port") return err(403, "Host tidak diizinkan.")
         val ck = cookie(r.headers["cookie"], "gabby_t")
         if (r.method == "GET" && (r.path == "/" || r.path == "/index.html")) {
-            if (tokOk(r.query["t"])) return HttpResp(302, base(mapOf("location" to "/", "set-cookie" to "gabby_t=$token; Path=/; HttpOnly; SameSite=Strict")), ByteArray(0))
+            // Token di tautan: langsung tampilkan halaman dan pasang cookie (tanpa redirect, karena Chrome tidak mengirim cookie Strict
+            // pada rantai redirect yang dimulai dari aplikasi lain). Lax cukup: POST lintas situs tidak membawa cookie, dan Origin tetap diperiksa.
+            if (tokOk(r.query["t"])) {
+                val scrub = "<script>history.replaceState(null,'','/')</script>"
+                val html = page().let { if (it.contains("<head>")) it.replaceFirst("<head>", "<head>$scrub") else scrub + it }
+                return HttpResp(200, base(mapOf("content-type" to "text/html; charset=utf-8", "content-security-policy" to csp, "set-cookie" to "gabby_t=$token; Path=/; HttpOnly; SameSite=Lax")), html.toByteArray())
+            }
             if (tokOk(ck)) return HttpResp(200, base(mapOf("content-type" to "text/html; charset=utf-8", "content-security-policy" to csp)), page().toByteArray())
-            return HttpResp(401, base(mapOf("content-type" to "text/plain; charset=utf-8")), "Buka halaman ini lewat tombol Pengaturan di aplikasi Gabby.".toByteArray())
+            return HttpResp(401, base(mapOf("content-type" to "text/plain; charset=utf-8")), "Sesi habis atau tautan salah. Tutup tab ini, lalu ketuk lagi tombol Buka Pengaturan di aplikasi Gabby.".toByteArray())
         }
         if (!r.path.startsWith("/api/")) return err(404, "Tidak ditemukan.")
         if (!tokOk(r.headers["x-gabby-token"] ?: ck)) return err(401, "Belum diizinkan. Buka lewat aplikasi Gabby.")
