@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Gabby</string>
+    <string name="a11y_desc">Gabby memakai layanan ini hanya untuk mengambil tangkapan layar saat kamu menekan Scan Layar. Gambar dikirim ke penyedia AI yang kamu pilih. Gabby tidak membaca isi layar atau mengontrol aplikasi lain.</string>
+</resources>

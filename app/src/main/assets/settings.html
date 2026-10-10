@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Pengaturan Gabby</title>
+<style>
+:root{--bg:#F6F4FD;--card:#fff;--ink:#1B1640;--mute:#6B6890;--line:#E2DFF5;--acc:#2F6BFF;--grad:linear-gradient(135deg,#7B3FE4,#2F6BFF);--ok:#12805A;--err:#D9480F}
+@media (prefers-color-scheme:dark){:root{--bg:#0F0C24;--card:#1A1640;--ink:#ECE9FF;--mute:#A9A4D6;--line:#34306A;--acc:#86A8FF;--ok:#4CC38A}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:560px;margin:0 auto;padding:18px 14px 40px}
+h1{font-size:1.35rem;margin:6px 0 2px}.sub{color:var(--mute);margin:0 0 16px;font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px}
+.card h2{font-size:1rem;margin:0 0 2px}.card p{margin:0 0 10px;color:var(--mute);font-size:.85rem}
+label{display:block;font-size:.85rem;font-weight:600;margin:10px 0 4px}
+input[type=text],input[type=password],select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--ink);font:inherit}
+textarea{min-height:90px;resize:vertical}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sw{position:relative;width:48px;height:28px;flex:none}.sw input{opacity:0;width:100%;height:100%;position:absolute;margin:0;cursor:pointer;z-index:1}
+.sw span{position:absolute;inset:0;background:#BFC4DA;border-radius:99px;transition:.15s}.sw span::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:.15s}
+.sw input:checked+span{background:var(--acc)}.sw input:checked+span::after{left:23px}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.modes label{margin:0;border:1px solid var(--line);border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer;font-weight:600;font-size:.88rem}
+.modes input{display:none}.modes input:checked+b{color:#fff}.modes label:has(input:checked){background:var(--grad);color:#fff;border-color:transparent}
+.modes small{display:block;font-weight:400;opacity:.85;font-size:.72rem}
+button{font:600 .95rem system-ui,sans-serif;border:0;border-radius:12px;padding:12px 16px;color:#fff;background:var(--grad);width:100%;cursor:pointer}
+button.l{background:transparent;color:var(--acc);width:auto;padding:4px 0;font-size:.82rem;margin-top:6px}
+#msg{min-height:1.4em;margin:10px 0 0;font-size:.9rem;text-align:center}
+.ok{color:var(--ok)}.err{color:var(--err)}
+.hint{font-size:.78rem;color:var(--mute);margin:4px 0 0}
+</style>
+</head>
+<body>
+<main>
+  <h1>Pengaturan</h1>
+  <p class="sub">Tersimpan di perangkat ini. API key disimpan terenkripsi dan tidak pernah ditampilkan lagi.</p>
+
+  <div class="card"><div class="row"><div><h2>Gabby Aktif</h2><p style="margin:0">Asisten siap membantu (widget melayang)</p></div>
+    <label class="sw"><input id="active" type="checkbox" aria-label="Gabby aktif"><span></span></label></div></div>
+
+  <div class="card">
+    <h2>AI Model &amp; API Key</h2><p>Pilih penyedia AI dan isi API key milikmu.</p>
+    <label for="provider">Penyedia aktif</label>
+    <select id="provider"><option value="gemini">Gemini (Google)</option><option value="openai">OpenAI</option><option value="anthropic">Claude (Anthropic)</option></select>
+    <label for="model">Nama model</label>
+    <input id="model" type="text" autocomplete="off" spellcheck="false">
+    <p class="hint" id="mhint"></p>
+    <label for="key">API key</label>
+    <input id="key" type="password" autocomplete="off" spellcheck="false">
+    <p class="hint" id="khint"></p>
+    <button class="l" id="clear" type="button">Hapus key tersimpan untuk penyedia ini</button>
+  </div>
+
+  <div class="card">
+    <h2>Mode</h2><p>Seimbang antara kecepatan dan akurasi.</p>
+    <div class="modes">
+      <label><input type="radio" name="mode" value="normal"><b>Normal</b><small>Seimbang</small></label>
+      <label><input type="radio" name="mode" value="cepat"><b>Cepat</b><small>Hemat waktu</small></label>
+      <label><input type="radio" name="mode" value="akurat"><b>Akurat</b><small>Lebih teliti</small></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Persona</h2><p>Instruksi dasar untuk gaya jawaban Gabby.</p>
+    <textarea id="persona" maxlength="2000"></textarea>
+  </div>
+
+  <div class="card">
+    <h2>Agen</h2><p>Seberapa jauh Gabby boleh bekerja sendiri dalam satu pesan.</p>
+    <label for="maxSteps">Batas langkah per pesan (3-30)</label>
+    <input id="maxSteps" type="number" min="3" max="30" step="1">
+    <div class="row" style="margin-top:10px"><div><b>Ingat otomatis</b><p class="hint" style="margin:0">Gabby boleh menyimpan ingatan tanpa bertanya (tetap diberitahukan di chat).</p></div>
+      <label class="sw"><input id="memoryAuto" type="checkbox" aria-label="Ingat otomatis"><span></span></label></div>
+    <p class="hint">Perintah berbahaya (rm, sudo, dan sejenisnya), membuat tugas, dan menyusun rencana selalu meminta persetujuan.</p>
+  </div>
+
+  <div class="card"><h2>Ingatan</h2><p>Catatan yang Gabby ingat tentangmu. Tersimpan di perangkat.</p>
+    <div id="memList"></div><button class="l" id="memAll" type="button">Hapus semua ingatan</button></div>
+
+  <div class="card"><h2>Tugas terjadwal</h2><p>Berjalan sendiri selama Gabby aktif, hanya dengan alat yang diizinkan saat dibuat. Minta Gabby di chat untuk membuatnya.</p>
+    <div id="taskList"></div></div>
+
+  <div class="card"><h2>Sesi</h2><p>Riwayat percakapan. Beralih sesi lewat /sesi di chat.</p><div id="sesList"></div></div>
+
+  <div class="card">
+    <h2>File &amp; Riwayat</h2>
+    <p>Folder dipilih lewat aplikasi Gabby (hanya bisa dicabut dari sini). Menulis file selalu meminta izin.</p>
+    <div class="row"><span id="folder">Folder: -</span><button class="l" id="revokeFiles" type="button">Cabut</button></div>
+    <div class="row" style="margin-top:10px"><div><b>Baca file otomatis</b><p class="hint" style="margin:0">Tanpa bertanya tiap kali, hanya di folder yang diizinkan.</p></div>
+      <label class="sw"><input id="autoRead" type="checkbox" aria-label="Baca file otomatis"><span></span></label></div>
+    <div class="row" style="margin-top:10px"><div><b>Simpan riwayat chat</b><p class="hint" style="margin:0">Di penyimpanan privat aplikasi. Gambar layar tidak disimpan.</p></div>
+      <label class="sw"><input id="saveHistory" type="checkbox" aria-label="Simpan riwayat chat"><span></span></label></div>
+  </div>
+
+  <div class="card">
+    <h2>Izin</h2>
+    <p>Izin layar dan Aksesibilitas diatur di aplikasi Gabby. Persetujuan scan layar hanya bisa diberikan di perangkat.</p>
+    <div class="row"><span id="consent">Persetujuan scan layar: -</span><button class="l" id="revoke" type="button">Cabut</button></div>
+  </div>
+
+  <button id="save" type="button">Simpan</button>
+  <p id="msg" role="status"></p>
+</main>
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var S = null, edits = {}, cur = 'gemini';
+
+  async function api(path, body) {
+    var r = await fetch(path, body === undefined ? { headers: {} } : { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    var j = await r.json().catch(function () { return { error: 'Respons tidak valid.' }; });
+    if (!r.ok) throw new Error(j.error || ('Gagal (' + r.status + ')'));
+    return j;
+  }
+  function msg(t, ok) { $('#msg').textContent = t; $('#msg').className = ok ? 'ok' : 'err'; }
+
+  function show() {
+    var p = S.providers[cur], e = edits[cur] || {};
+    $('#model').value = e.model !== undefined ? e.model : p.model;
+    $('#model').placeholder = S.defaultModels[cur] || 'isi nama model dari dokumentasi penyedia';
+    $('#mhint').textContent = S.defaultModels[cur] ? 'Contoh: ' + S.defaultModels[cur] + '. Nama model bisa berubah, cek dokumentasi penyedia.' : 'Isi nama model dari dokumentasi penyedia.';
+    $('#key').value = e.key || '';
+    $('#key').placeholder = p.hasKey ? 'Tersimpan (••••' + p.last4 + '). Kosongkan untuk tetap.' : 'Tempel API key';
+    $('#khint').textContent = p.hasKey ? 'Key tersimpan terenkripsi.' : 'Belum ada key untuk penyedia ini.';
+    $('#clear').style.display = p.hasKey ? '' : 'none';
+  }
+  function remember() { edits[cur] = Object.assign(edits[cur] || {}, { model: $('#model').value, key: $('#key').value }); }
+
+  function render(j) {
+    S = j; cur = $('#provider').value = j.provider; $('#active').checked = j.active;
+    document.querySelectorAll('input[name=mode]').forEach(function (r) { r.checked = r.value === j.mode; });
+    $('#persona').value = j.persona; edits = {};
+    $('#maxSteps').value = j.maxSteps; $('#memoryAuto').checked = j.memoryAuto;
+    $('#autoRead').checked = j.autoRead; $('#saveHistory').checked = j.saveHistory;
+    $('#folder').textContent = 'Folder: ' + (j.filesFolder || 'belum dipilih'); $('#revokeFiles').style.display = j.filesFolder ? '' : 'none';
+    $('#consent').textContent = 'Persetujuan scan layar: ' + (j.screenConsent ? 'sudah diberikan' : 'belum diberikan');
+    $('#revoke').style.display = j.screenConsent ? '' : 'none';
+    show();
+  }
+
+  $('#provider').addEventListener('change', function () { remember(); cur = $('#provider').value; show(); });
+  $('#clear').addEventListener('click', async function () {
+    if (!confirm('Hapus key tersimpan untuk penyedia ini?')) return;
+    var b = { providers: {} }; b.providers[cur] = { clearKey: true };
+    try { render(await api('/api/save', b)); msg('Key dihapus.', true); } catch (e) { msg(e.message, false); }
+  });
+  $('#revokeFiles').addEventListener('click', async function () {
+    try { render(await api('/api/save', { revokeFiles: true })); msg('Folder dicabut.', true); } catch (e) { msg(e.message, false); }
+  });
+  $('#revoke').addEventListener('click', async function () {
+    try { render(await api('/api/save', { screenConsent: false })); msg('Persetujuan scan dicabut.', true); } catch (e) { msg(e.message, false); }
+  });
+  $('#save').addEventListener('click', async function () {
+    remember();
+    var mode = (document.querySelector('input[name=mode]:checked') || {}).value;
+    var body = { provider: $('#provider').value, active: $('#active').checked, maxSteps: parseInt($('#maxSteps').value, 10) || 12, memoryAuto: $('#memoryAuto').checked, autoRead: $('#autoRead').checked, saveHistory: $('#saveHistory').checked, persona: $('#persona').value, providers: {} };
+    if (mode) body.mode = mode;
+    Object.keys(edits).forEach(function (p) {
+      var e = edits[p], o = { model: e.model };
+      if (e.key && e.key.trim()) o.key = e.key.trim();
+      body.providers[p] = o;
+    });
+    $('#save').disabled = true;
+    try { render(await api('/api/save', body)); msg('Tersimpan.', true); }
+    catch (e) { msg(e.message, false); }
+    finally { $('#save').disabled = false; }
+  });
+
+  // ---- daftar: ingatan, tugas, sesi (dibuat dengan textContent agar aman dari injeksi HTML)
+  function mk(tag, text, cls) { var e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; }
+  function itemRow(title, sub, actions) {
+    var r = mk('div'); r.style.cssText = 'display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)';
+    var t = mk('div'); t.style.minWidth = '0'; t.appendChild(mk('div', title)); if (sub) t.appendChild(mk('div', sub, 'hint'));
+    var a = mk('div'); a.style.cssText = 'display:flex;gap:10px;flex:none';
+    actions.forEach(function (x) { var b = mk('button', x[0], 'l'); b.type = 'button'; b.addEventListener('click', x[1]); a.appendChild(b); });
+    r.appendChild(t); r.appendChild(a); return r;
+  }
+  function empty(box, text) { box.textContent = ''; box.appendChild(mk('p', text, 'hint')); }
+  async function act(path, body, okMsg) { try { await api(path, body); msg(okMsg, true); loadLists(); } catch (e) { msg(e.message, false); } }
+  function when_(ms) { return ms ? new Date(ms).toLocaleString() : '-'; }
+  async function loadLists() {
+    try {
+      var m = await api('/api/memory'), box = $('#memList'); box.textContent = '';
+      if (!m.notes.length) empty(box, 'Belum ada ingatan.');
+      m.notes.forEach(function (n) { box.appendChild(itemRow(n.text, n.id + ' | ' + (n.source === 'agent' ? 'dari Gabby' : 'dari kamu'), [['Lupakan', function () { act('/api/memory/forget', { id: n.id }, 'Dilupakan.'); }]])); });
+      $('#memAll').style.display = m.notes.length ? '' : 'none';
+    } catch (e) { empty($('#memList'), 'Ingatan tidak tersedia.'); }
+    try {
+      var t = await api('/api/tasks'), tb = $('#taskList'); tb.textContent = '';
+      if (!t.tasks.length) empty(tb, 'Belum ada tugas.');
+      t.tasks.forEach(function (k) {
+        var sub = k.schedule + ' | ' + (k.enabled ? 'aktif, berikutnya ' + when_(k.nextRun) : 'mati') + ' | izin: ' + (k.allow.length ? k.allow.join(', ') : 'tanpa alat') + (k.lastRun ? ' | terakhir ' + when_(k.lastRun) + ': ' + k.lastResult.slice(0, 120) : '');
+        tb.appendChild(itemRow(k.title, sub, [[k.enabled ? 'Matikan' : 'Aktifkan', function () { act('/api/tasks', { op: k.enabled ? 'disable' : 'enable', id: k.id }, 'OK.'); }],
+          ['Jalankan', function () { act('/api/tasks', { op: 'run', id: k.id }, 'Dijadwalkan jalan sekarang.'); }], ['Hapus', function () { if (confirm('Hapus tugas ini?')) act('/api/tasks', { op: 'remove', id: k.id }, 'Tugas dihapus.'); }]]));
+      });
+    } catch (e) { empty($('#taskList'), 'Tugas tidak tersedia.'); }
+    try {
+      var s2 = await api('/api/sessions'), sb = $('#sesList'); sb.textContent = '';
+      s2.sessions.forEach(function (x) { sb.appendChild(itemRow(x.title, (x.id === s2.current ? 'aktif | ' : '') + when_(x.updated), [['Hapus', function () { if (confirm('Hapus sesi ini?')) act('/api/sessions', { op: 'delete', id: x.id }, 'Sesi dihapus.'); }]])); });
+    } catch (e) { empty($('#sesList'), 'Sesi tidak tersedia.'); }
+  }
+  $('#memAll').addEventListener('click', function () { if (confirm('Hapus SEMUA ingatan?')) act('/api/memory/forget', { all: true }, 'Semua ingatan dihapus.'); });
+
+  api('/api/state').then(function (j) { render(j); loadLists(); }).catch(function (e) { msg(e.message + ' Buka halaman ini lewat tombol Pengaturan di aplikasi Gabby.', false); });
+})();
+</script>
+</body>
+</html>
